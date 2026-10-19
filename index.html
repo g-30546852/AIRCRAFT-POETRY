@@ -1,0 +1,1710 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>AIRCRAFT QUIZ: MY FAMILY, MY SOUL</title>
+  <style>
+    :root {
+      --primary-blue: #0284c7;
+      --gold-yellow: #f59e0b;
+      --card-bg: rgba(15, 23, 42, 0.88);
+      --accent-green: #10b981;
+      --accent-red: #ef4444;
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    body, html {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-color: #0369a1;
+    }
+    #game-container {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+    }
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    /* In-game HUD */
+    #hud {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      right: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      pointer-events: none;
+      z-index: 10;
+    }
+    .hud-card {
+      background: rgba(15, 23, 42, 0.8);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      padding: 6px 14px;
+      border-radius: 14px;
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    }
+    .hud-title {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #94a3b8;
+      font-weight: bold;
+    }
+    .hud-val {
+      font-size: 17px;
+      font-weight: 800;
+      color: #fde047;
+    }
+    .hearts-row {
+      display: flex;
+      gap: 3px;
+      font-size: 16px;
+    }
+    .heart-lost {
+      filter: grayscale(100%) opacity(0.35);
+    }
+    .hud-card {
+      background: rgba(15, 23, 42, 0.75);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      padding: 8px 16px;
+      border-radius: 14px;
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    }
+    .hud-title {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #94a3b8;
+      font-weight: bold;
+    }
+    .hud-val {
+      font-size: 18px;
+      font-weight: 800;
+      color: #fde047;
+    }
+
+    /* Modal Screens */
+    .overlay-screen {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at center, rgba(14, 116, 144, 0.85) 0%, rgba(15, 23, 42, 0.95) 100%);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 50;
+      padding: 16px;
+      transition: opacity 0.3s ease;
+    }
+    .hidden {
+      display: none !important;
+    }
+    .panel {
+      background: #0f172a;
+      border: 3px solid #38bdf8;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6), 0 0 25px rgba(56, 189, 248, 0.4);
+      border-radius: 24px;
+      max-width: 540px;
+      width: 100%;
+      padding: 24px 28px;
+      color: #fff;
+      text-align: center;
+      animation: popIn 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    @keyframes popIn {
+      0% { transform: scale(0.85); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    .game-logo {
+      font-size: 26px;
+      font-weight: 900;
+      letter-spacing: 1.5px;
+      color: #f8fafc;
+      text-shadow: 0 3px 0 #0284c7, 0 8px 18px rgba(2, 132, 199, 0.6);
+      margin-bottom: 4px;
+    }
+    .sub-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: #fbbf24;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+      letter-spacing: 1px;
+    }
+
+    /* Inputs */
+    .form-group {
+      margin-bottom: 14px;
+      text-align: left;
+    }
+    .form-group label {
+      display: block;
+      font-size: 13px;
+      color: #cbd5e1;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+    .input-field {
+      width: 100%;
+      padding: 10px 14px;
+      border-radius: 12px;
+      border: 2px solid #334155;
+      background: #1e293b;
+      color: #fff;
+      font-size: 15px;
+      font-weight: 600;
+      outline: none;
+      transition: border 0.2s;
+    }
+    .input-field:focus {
+      border-color: #38bdf8;
+      box-shadow: 0 0 10px rgba(56, 189, 248, 0.4);
+    }
+    .class-selector {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+    .class-btn {
+      padding: 10px;
+      border-radius: 10px;
+      background: #1e293b;
+      border: 2px solid #334155;
+      color: #cbd5e1;
+      font-weight: bold;
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 0.2s;
+    }
+    .class-btn.active {
+      background: #0284c7;
+      border-color: #7dd3fc;
+      color: #fff;
+      box-shadow: 0 0 12px rgba(2, 132, 199, 0.6);
+    }
+
+    .info-box {
+      background: rgba(30, 41, 59, 0.7);
+      border-radius: 12px;
+      padding: 12px;
+      font-size: 12px;
+      color: #94a3b8;
+      line-height: 1.45;
+      margin-bottom: 18px;
+      text-align: left;
+      border-left: 4px solid #38bdf8;
+    }
+
+    /* Buttons */
+    .btn-main {
+      width: 100%;
+      background: linear-gradient(135deg, #0ea5e9, #0284c7);
+      border: none;
+      color: white;
+      font-size: 16px;
+      font-weight: 800;
+      padding: 13px 20px;
+      border-radius: 14px;
+      cursor: pointer;
+      box-shadow: 0 5px 15px rgba(2, 132, 199, 0.4);
+      transition: transform 0.15s, background 0.2s;
+    }
+    .btn-main:active {
+      transform: scale(0.97);
+    }
+
+    /* Question Modal */
+    #question-modal {
+      z-index: 60;
+    }
+    .question-badge {
+      display: inline-block;
+      background: #0284c7;
+      color: #fff;
+      font-size: 12px;
+      font-weight: 800;
+      padding: 4px 12px;
+      border-radius: 20px;
+      margin-bottom: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .question-text {
+      font-size: 17px;
+      font-weight: 700;
+      line-height: 1.4;
+      margin-bottom: 20px;
+      color: #f8fafc;
+    }
+    .answers-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    @media (min-width: 480px) {
+      .answers-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+    .ans-btn {
+      background: #1e293b;
+      border: 2px solid #334155;
+      border-radius: 12px;
+      padding: 12px 14px;
+      color: #f1f5f9;
+      font-size: 14px;
+      font-weight: 600;
+      text-align: left;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .ans-btn:hover {
+      background: #334155;
+      border-color: #64748b;
+    }
+    .ans-tag {
+      background: #0284c7;
+      color: white;
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 13px;
+      flex-shrink: 0;
+    }
+    .ans-btn.correct {
+      background: #065f46 !important;
+      border-color: #10b981 !important;
+      color: #ecfdf5 !important;
+    }
+    .ans-btn.correct .ans-tag {
+      background: #10b981;
+    }
+    .ans-btn.wrong {
+      background: #7f1d1d !important;
+      border-color: #ef4444 !important;
+      color: #fef2f2 !important;
+    }
+    .ans-btn.wrong .ans-tag {
+      background: #ef4444;
+    }
+    .feedback-banner {
+      font-size: 15px;
+      font-weight: 800;
+      padding: 10px;
+      border-radius: 10px;
+      margin-top: 10px;
+      animation: fadeIn 0.3s ease;
+    }
+    .feedback-correct {
+      background: rgba(16, 185, 129, 0.2);
+      border: 2px solid #10b981;
+      color: #34d399;
+    }
+    .feedback-wrong {
+      background: rgba(239, 68, 68, 0.2);
+      border: 2px solid #ef4444;
+      color: #f87171;
+    }
+
+    /* Results Screen */
+    .trophy-icon {
+      font-size: 48px;
+      margin-bottom: 8px;
+    }
+    .stat-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin: 16px 0;
+    }
+    .stat-box {
+      background: #1e293b;
+      padding: 10px 6px;
+      border-radius: 10px;
+      border: 1px solid #334155;
+    }
+    .stat-lbl {
+      font-size: 11px;
+      color: #94a3b8;
+      text-transform: uppercase;
+      font-weight: bold;
+    }
+    .stat-val {
+      font-size: 20px;
+      font-weight: 800;
+      color: #38bdf8;
+      margin-top: 4px;
+    }
+
+    /* On-Screen Touch Controls */
+    #touch-controls {
+      position: absolute;
+      bottom: 20px;
+      left: 0;
+      right: 0;
+      display: flex;
+      justify-content: space-between;
+      padding: 0 24px;
+      pointer-events: none;
+      z-index: 25;
+    }
+    .d-pad {
+      display: grid;
+      grid-template-columns: repeat(3, 56px);
+      grid-template-rows: repeat(3, 56px);
+      gap: 6px;
+      pointer-events: auto;
+    }
+    .t-btn {
+      background: rgba(15, 23, 42, 0.7);
+      border: 2px solid rgba(255, 255, 255, 0.35);
+      border-radius: 16px;
+      color: white;
+      font-size: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: manipulation;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+      cursor: pointer;
+    }
+    .t-btn:active, .t-btn.pressed {
+      background: rgba(56, 189, 248, 0.6);
+      border-color: #38bdf8;
+      transform: scale(0.92);
+    }
+    .up-btn { grid-column: 2; grid-row: 1; }
+    .left-btn { grid-column: 1; grid-row: 2; }
+    .right-btn { grid-column: 3; grid-row: 2; }
+    .down-btn { grid-column: 2; grid-row: 3; }
+
+    /* Sound indicator */
+    #sound-toggle {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      pointer-events: auto;
+      background: rgba(15, 23, 42, 0.75);
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      color: white;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 26;
+    }
+  </style>
+</head>
+<body>
+
+<div id="game-container">
+  <canvas id="gameCanvas"></canvas>
+
+  <!-- HUD -->
+  <div id="hud" class="hidden">
+    <div class="hud-card">
+      <span class="hud-title">Pilot & Kelas</span>
+      <span class="hud-val" id="hud-name-class" style="font-size: 13px; color: #38bdf8;">-</span>
+    </div>
+    <div class="hud-card">
+      <span class="hud-title">Perisai Kapal</span>
+      <div class="hearts-row" id="hud-hearts">
+        <span id="heart-1">❤️</span>
+        <span id="heart-2">❤️</span>
+        <span id="heart-3">❤️</span>
+      </div>
+    </div>
+    <div class="hud-card">
+      <span class="hud-title">Soalan Dijawab</span>
+      <span class="hud-val"><span id="hud-q-count">0</span> / 10</span>
+    </div>
+    <div class="hud-card">
+      <span class="hud-title">Markah Semasa</span>
+      <span class="hud-val" id="hud-score">0</span>
+    </div>
+  </div>
+
+  <!-- Start Screen -->
+  <div id="start-screen" class="overlay-screen">
+    <div class="panel">
+      <div style="font-size: 40px; margin-bottom: 6px;">✈️⚡</div>
+      <h1 class="game-logo">AIRCRAFT QUIZ</h1>
+      <div class="sub-title">My Family, My Soul</div>
+
+      <div class="form-group">
+        <label for="player-name">Nama Murid:</label>
+        <input type="text" id="player-name" class="input-field" placeholder="cth. Muhammad Adam / Siti Sarah" maxlength="25">
+      </div>
+
+      <div class="form-group">
+        <label for="class-name">Nama Kelas:</label>
+        <input type="text" id="class-name" class="input-field" placeholder="cth. 4 Cemerlang / 5 Ibnu Sina / 6 Amanah" maxlength="25">
+      </div>
+
+      <div class="form-group">
+        <label>Peringkat Tahun:</label>
+        <div class="class-selector">
+          <button type="button" class="class-btn active" onclick="selectClass('Tahun 4')">Tahun 4</button>
+          <button type="button" class="class-btn" onclick="selectClass('Tahun 5')">Tahun 5</button>
+          <button type="button" class="class-btn" onclick="selectClass('Tahun 6')">Tahun 6</button>
+        </div>
+      </div>
+
+      <div class="info-box">
+        <strong>🎮 Panduan Misi Arked:</strong><br>
+        1. Kemudi kapal terbang guna <b>WASD / Anak Panah</b> atau <b>Butang Sentuh</b>.<br>
+        2. Kutip <b>Syiling Emas ★</b> untuk buka 10 soalan sajak.<br>
+        3. <b>Jawapan Betul:</b> +10 markah | <b>Jawapan Salah:</b> -5 markah.<br>
+        4. ⚠️ <b>Awas Halangan:</b> Elak <b>Awan Ribut Petir 🌩️</b> & <b>Dron Halangan 🛸</b>! Langgar halangan = -2 markah, gegaran & kehilangan hati/perisai!
+      </div>
+
+      <button class="btn-main" id="btn-start" onclick="startGame()">MULA MAIN / START GAME</button>
+    </div>
+  </div>
+
+  <!-- Question Modal Screen -->
+  <div id="question-modal" class="overlay-screen hidden">
+    <div class="panel">
+      <span class="question-badge" id="modal-q-badge">Soalan 1 / 10</span>
+      <h2 class="question-text" id="modal-q-text">Question goes here?</h2>
+
+      <div class="answers-grid" id="modal-answers">
+        <!-- Buttons injected via JS -->
+      </div>
+
+      <div id="modal-feedback" class="feedback-banner hidden"></div>
+      <button id="modal-next-btn" class="btn-main hidden" style="margin-top: 14px;" onclick="resumeFlight()">Sambung Penerbangan ✈️</button>
+    </div>
+  </div>
+
+  <!-- Results Screen -->
+  <div id="results-screen" class="overlay-screen hidden">
+    <div class="panel">
+      <div class="trophy-icon" id="res-trophy">🏆</div>
+      <h2 class="game-logo" style="font-size: 24px;">MISI SELESAI!</h2>
+      <p id="res-student-info" style="color: #cbd5e1; font-size: 15px; margin-top: 4px; font-weight: 600;"></p>
+
+      <div class="stat-row">
+        <div class="stat-box">
+          <div class="stat-lbl">Betul</div>
+          <div class="stat-val" id="res-correct" style="color: #34d399;">0</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-lbl">Salah</div>
+          <div class="stat-val" id="res-wrong" style="color: #f87171;">0</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-lbl">Halangan</div>
+          <div class="stat-val" id="res-hits" style="color: #fb923c;">0</div>
+        </div>
+      </div>
+      <div class="stat-box" style="margin-bottom: 12px; background: #1e293b;">
+        <div class="stat-lbl">Skor Akhir</div>
+        <div class="stat-val" id="res-score" style="color: #fde047; font-size: 24px;">0 / 100</div>
+      </div>
+
+      <div style="background: rgba(30,41,59,0.7); border-radius: 12px; padding: 12px; margin-bottom: 16px;">
+        <div style="font-size: 13px; color: #94a3b8; margin-bottom: 4px;">Peratusan Kejayaan: <b id="res-pct" style="color: #fde047; font-size: 16px;">0%</b></div>
+        <p id="res-message" style="font-size: 14px; font-weight: 700; color: #38bdf8;"></p>
+      </div>
+
+      <button class="btn-main" onclick="restartGame()">MAIN SEMULA / PLAY AGAIN</button>
+    </div>
+  </div>
+
+  <!-- Touch D-Pad for Mobile -->
+  <div id="touch-controls">
+    <div class="d-pad">
+      <button class="t-btn up-btn" data-key="ArrowUp" aria-label="Up">▲</button>
+      <button class="t-btn left-btn" data-key="ArrowLeft" aria-label="Left">◀</button>
+      <button class="t-btn right-btn" data-key="ArrowRight" aria-label="Right">▶</button>
+      <button class="t-btn down-btn" data-key="ArrowDown" aria-label="Down">▼</button>
+    </div>
+  </div>
+
+  <button id="sound-toggle" title="Bunyi Buka/Tutup" onclick="toggleAudio()">🔊</button>
+</div>
+
+<script>
+/* -------------------------------------------------------------
+ * 1. SOALAN & DATA
+ * ------------------------------------------------------------- */
+const QUESTIONS_SOURCE = [
+  {
+    q: "What is the title of the poem?",
+    options: ["My Happy School", "My Family, My Soul", "My Best Friend", "My Lovely Teacher"],
+    correct: 1 // B
+  },
+  {
+    q: "What is the poet's family described as?",
+    options: ["A guiding light", "A big school", "A beautiful garden", "A quiet place"],
+    correct: 0 // A
+  },
+  {
+    q: "What makes the poet's world warm and bright?",
+    options: ["Toys and games", "Books and pencils", "Family love", "Friends at school"],
+    correct: 2 // C
+  },
+  {
+    q: "What does the poet's mother do?",
+    options: ["She plays football", "She cares for the poet", "She teaches at school", "She sings every morning"],
+    correct: 1 // B
+  },
+  {
+    q: "What does the poet's father do?",
+    options: ["He guides the poet", "He buys new toys", "He cooks every day", "He reads the newspaper"],
+    correct: 0 // A
+  },
+  {
+    q: "How does the family help the poet during difficult times?",
+    options: ["They leave the poet alone", "They make the poet feel afraid", "Their love gives the poet strength", "They ask the poet to stop trying"],
+    correct: 2 // C
+  },
+  {
+    q: "Which word describes the poet's family?",
+    options: ["Unkind", "Caring", "Angry", "Lonely"],
+    correct: 1 // B
+  },
+  {
+    q: "What do the family members do together?",
+    options: ["Laugh and grow together", "Fight every day", "Travel to school", "Play computer games"],
+    correct: 0 // A
+  },
+  {
+    q: "What does 'With you, I'll never feel alone!' mean?",
+    options: ["The poet does not like being at home", "The poet feels loved and supported by the family", "The poet wants to live alone", "The poet does not need anyone"],
+    correct: 1 // B
+  },
+  {
+    q: "What is the main message of the poem?",
+    options: ["School is more important than family", "Friends are the only source of happiness", "Family is a source of love, strength and support", "Everyone should live independently"],
+    correct: 2 // C
+  }
+];
+
+/* -------------------------------------------------------------
+ * 2. SOUND SYNTHESIS (Web Audio API)
+ * ------------------------------------------------------------- */
+let audioCtx = null;
+let soundEnabled = true;
+
+function initAudio() {
+  if (!audioCtx) {
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    if (AudioContextClass) {
+      audioCtx = new AudioContextClass();
+    }
+  }
+}
+
+function playTone(freq, type = 'sine', duration = 0.15, vol = 0.2) {
+  if (!soundEnabled || !audioCtx) return;
+  try {
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+    gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start();
+    osc.stop(audioCtx.currentTime + duration);
+  } catch(e) {}
+}
+
+function soundCoin() {
+  playTone(880, 'sine', 0.1, 0.25);
+  setTimeout(() => playTone(1320, 'triangle', 0.2, 0.3), 80);
+}
+
+function soundCorrect() {
+  playTone(523.25, 'triangle', 0.15, 0.25);
+  setTimeout(() => playTone(659.25, 'triangle', 0.15, 0.25), 100);
+  setTimeout(() => playTone(783.99, 'triangle', 0.25, 0.3), 200);
+  setTimeout(() => playTone(1046.50, 'triangle', 0.35, 0.35), 300);
+}
+
+function soundWrong() {
+  playTone(300, 'sawtooth', 0.18, 0.3);
+  setTimeout(() => playTone(220, 'sawtooth', 0.25, 0.3), 120);
+}
+
+function soundCrash() {
+  // Low crash / thunder rumble
+  playTone(150, 'sawtooth', 0.25, 0.35);
+  setTimeout(() => playTone(90, 'square', 0.3, 0.4), 60);
+}
+
+function toggleAudio() {
+  soundEnabled = !soundEnabled;
+  document.getElementById('sound-toggle').innerText = soundEnabled ? '🔊' : '🔇';
+  if (soundEnabled && !audioCtx) initAudio();
+}
+
+/* -------------------------------------------------------------
+ * 3. STATE & CONFIG
+ * ------------------------------------------------------------- */
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+
+let width = window.innerWidth;
+let height = window.innerHeight;
+
+let selectedClass = "Tahun 4";
+let playerName = "";
+let customClassName = "";
+let currentScore = 0;
+let answeredCount = 0;
+let correctCount = 0;
+let wrongCount = 0;
+let obstacleHits = 0;
+let lives = 3;
+
+let gameRunning = false;
+let gamePaused = false;
+let questionPool = [];
+let currentQuestion = null;
+
+// Screen Shake Effect
+let screenShake = 0;
+
+// Controls
+const keys = {
+  ArrowUp: false,
+  ArrowDown: false,
+  ArrowLeft: false,
+  ArrowRight: false,
+  w: false,
+  s: false,
+  a: false,
+  d: false
+};
+
+// Player aircraft object
+const plane = {
+  x: 0,
+  y: 0,
+  vx: 0,
+  vy: 0,
+  speed: 6.8,
+  friction: 0.88,
+  width: 58,
+  height: 64,
+  bankAngle: 0,
+  altitude: 30,
+  invulnerableTimer: 0 // invulnerability countdown frames
+};
+
+// Golden Coin
+const coin = {
+  x: 0,
+  y: 0,
+  radius: 24,
+  spin: 0,
+  glow: 0,
+  active: false,
+  bob: 0
+};
+
+// Background elements & Obstacles
+let clouds = [];
+let islands = [];
+let particles = [];
+let starBurst = [];
+let floatingTexts = [];
+let obstacles = []; // Thunderclouds & Drones
+
+/* -------------------------------------------------------------
+ * 4. INITIALIZATION & RESIZE
+ * ------------------------------------------------------------- */
+function resizeCanvas() {
+  width = canvas.width = window.innerWidth;
+  height = canvas.height = window.innerHeight;
+  if (!gameRunning) {
+    plane.x = width / 2;
+    plane.y = height * 0.7;
+  }
+}
+window.addEventListener('resize', resizeCanvas);
+
+function initBackground() {
+  islands = [];
+  for (let i = 0; i < 4; i++) {
+    islands.push({
+      x: Math.random() * width,
+      y: Math.random() * height,
+      size: 70 + Math.random() * 90,
+      speed: 0.6 + Math.random() * 0.4,
+      color: ['#0f766e', '#047857', '#15803d'][Math.floor(Math.random() * 3)]
+    });
+  }
+
+  clouds = [];
+  for (let i = 0; i < 8; i++) {
+    clouds.push({
+      x: Math.random() * width,
+      y: Math.random() * height,
+      radius: 40 + Math.random() * 55,
+      speed: 1.4 + Math.random() * 1.5,
+      opacity: 0.4 + Math.random() * 0.4
+    });
+  }
+}
+
+function resetObstacles() {
+  obstacles = [];
+  // Initial 3 obstacles
+  for (let i = 0; i < 3; i++) {
+    spawnObstacle(true);
+  }
+}
+
+function spawnObstacle(isInitial = false) {
+  const type = Math.random() > 0.45 ? 'thundercloud' : 'drone';
+  const startY = isInitial ? Math.random() * (height * 0.4) : -90;
+  const startX = 60 + Math.random() * (width - 120);
+
+  if (type === 'thundercloud') {
+    obstacles.push({
+      type: 'thundercloud',
+      x: startX,
+      y: startY,
+      radius: 34 + Math.random() * 12,
+      speedY: 1.6 + Math.random() * 1.4,
+      lightningTimer: Math.random() * 50,
+      hasFlash: false
+    });
+  } else {
+    // Drone / Hazard flyer
+    obstacles.push({
+      type: 'drone',
+      x: startX,
+      y: startY,
+      radius: 20,
+      speedY: 2.2 + Math.random() * 1.8,
+      speedX: (Math.random() - 0.5) * 1.8,
+      propellerAngle: 0
+    });
+  }
+}
+
+/* -------------------------------------------------------------
+ * 5. CONTROLS SETUP (KEYBOARD, TOUCH, MOUSE/DRAG)
+ * ------------------------------------------------------------- */
+window.addEventListener('keydown', (e) => {
+  if (keys.hasOwnProperty(e.key)) {
+    keys[e.key] = true;
+  }
+  if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' '].includes(e.key)) {
+    e.preventDefault();
+  }
+});
+
+window.addEventListener('keyup', (e) => {
+  if (keys.hasOwnProperty(e.key)) {
+    keys[e.key] = false;
+  }
+});
+
+const touchButtons = document.querySelectorAll('.t-btn');
+touchButtons.forEach(btn => {
+  const keyName = btn.getAttribute('data-key');
+  const press = (ev) => {
+    ev.preventDefault();
+    initAudio();
+    keys[keyName] = true;
+    btn.classList.add('pressed');
+  };
+  const release = (ev) => {
+    ev.preventDefault();
+    keys[keyName] = false;
+    btn.classList.remove('pressed');
+  };
+  btn.addEventListener('touchstart', press, { passive: false });
+  btn.addEventListener('touchend', release, { passive: false });
+  btn.addEventListener('touchcancel', release, { passive: false });
+  btn.addEventListener('mousedown', press);
+  btn.addEventListener('mouseup', release);
+  btn.addEventListener('mouseleave', release);
+});
+
+let isPointerDragging = false;
+let targetX = null;
+let targetY = null;
+
+canvas.addEventListener('pointerdown', (e) => {
+  if (!gameRunning || gamePaused) return;
+  initAudio();
+  isPointerDragging = true;
+  targetX = e.clientX;
+  targetY = e.clientY;
+});
+
+canvas.addEventListener('pointermove', (e) => {
+  if (isPointerDragging) {
+    targetX = e.clientX;
+    targetY = e.clientY;
+  }
+});
+
+window.addEventListener('pointerup', () => {
+  isPointerDragging = false;
+  targetX = null;
+  targetY = null;
+});
+
+/* -------------------------------------------------------------
+ * 6. UI & START / UPDATE
+ * ------------------------------------------------------------- */
+function selectClass(className) {
+  selectedClass = className;
+  document.querySelectorAll('.class-btn').forEach(btn => {
+    if (btn.innerText.includes(className)) {
+      btn.classList.add('active');
+    } else {
+      btn.classList.remove('active');
+    }
+  });
+}
+
+function updateHeartsHUD() {
+  for (let i = 1; i <= 3; i++) {
+    const heart = document.getElementById(`heart-${i}`);
+    if (i <= lives) {
+      heart.classList.remove('heart-lost');
+    } else {
+      heart.classList.add('heart-lost');
+    }
+  }
+}
+
+function startGame() {
+  initAudio();
+  const nameInput = document.getElementById('player-name').value.trim();
+  const classInput = document.getElementById('class-name').value.trim();
+
+  const pInput = document.getElementById('player-name');
+  const cInput = document.getElementById('class-name');
+
+  // Reset border highlights
+  pInput.style.borderColor = '#334155';
+  cInput.style.borderColor = '#334155';
+
+  if (!nameInput) {
+    pInput.style.borderColor = '#ef4444';
+    pInput.placeholder = 'Sila taip nama murid!';
+    pInput.focus();
+    return;
+  }
+
+  if (!classInput) {
+    cInput.style.borderColor = '#ef4444';
+    cInput.placeholder = 'Sila taip nama kelas!';
+    cInput.focus();
+    return;
+  }
+
+  playerName = nameInput;
+  customClassName = classInput;
+
+  // Reset scores & progress
+  currentScore = 0;
+  answeredCount = 0;
+  correctCount = 0;
+  wrongCount = 0;
+  obstacleHits = 0;
+  lives = 3;
+  updateHeartsHUD();
+
+  questionPool = [...QUESTIONS_SOURCE].sort(() => Math.random() - 0.5);
+
+  document.getElementById('hud-name-class').innerText = `${playerName} | ${customClassName} (${selectedClass})`;
+  updateHUD();
+
+  document.getElementById('start-screen').classList.add('hidden');
+  document.getElementById('hud').classList.remove('hidden');
+
+  plane.x = width / 2;
+  plane.y = height * 0.72;
+  plane.vx = 0;
+  plane.vy = 0;
+  plane.invulnerableTimer = 0;
+
+  resetObstacles();
+  spawnNextCoin();
+
+  gameRunning = true;
+  gamePaused = false;
+}
+
+function updateHUD() {
+  document.getElementById('hud-score').innerText = currentScore;
+  document.getElementById('hud-q-count').innerText = answeredCount;
+}
+
+function spawnNextCoin() {
+  const marginX = 80;
+  const marginTop = 90;
+  const marginBottom = 130;
+
+  coin.x = marginX + Math.random() * (width - marginX * 2);
+  coin.y = marginTop + Math.random() * (height - marginTop - marginBottom);
+  coin.active = true;
+  coin.spin = 0;
+}
+
+function addFloatingText(text, x, y, color = '#f87171') {
+  floatingTexts.push({
+    text,
+    x,
+    y,
+    color,
+    alpha: 1,
+    vy: -1.8
+  });
+}
+
+/* -------------------------------------------------------------
+ * 7. QUESTION MODAL & ANSWER LOGIC
+ * ------------------------------------------------------------- */
+function triggerQuestion() {
+  if (answeredCount >= 10 || questionPool.length === 0) {
+    endGame();
+    return;
+  }
+
+  gamePaused = true;
+  soundCoin();
+
+  currentQuestion = questionPool.pop();
+  answeredCount++;
+  updateHUD();
+
+  document.getElementById('modal-q-badge').innerText = `Soalan ${answeredCount} / 10`;
+  document.getElementById('modal-q-text').innerText = currentQuestion.q;
+
+  const answersContainer = document.getElementById('modal-answers');
+  answersContainer.innerHTML = '';
+
+  const labels = ['A', 'B', 'C', 'D'];
+  currentQuestion.options.forEach((optText, index) => {
+    const btn = document.createElement('button');
+    btn.className = 'ans-btn';
+    btn.innerHTML = `<span class="ans-tag">${labels[index]}</span> <span>${optText}</span>`;
+    btn.onclick = () => handleAnswer(index, btn);
+    answersContainer.appendChild(btn);
+  });
+
+  document.getElementById('modal-feedback').className = 'feedback-banner hidden';
+  document.getElementById('modal-next-btn').classList.add('hidden');
+  document.getElementById('question-modal').classList.remove('hidden');
+}
+
+function handleAnswer(selectedIndex, clickedButton) {
+  const allBtns = document.querySelectorAll('.ans-btn');
+  allBtns.forEach(btn => btn.style.pointerEvents = 'none');
+
+  const feedbackBanner = document.getElementById('modal-feedback');
+  feedbackBanner.classList.remove('hidden');
+
+  const isCorrect = (selectedIndex === currentQuestion.correct);
+
+  if (isCorrect) {
+    clickedButton.classList.add('correct');
+    currentScore += 10;
+    correctCount++;
+    soundCorrect();
+    feedbackBanner.className = 'feedback-banner feedback-correct';
+    feedbackBanner.innerHTML = '🌟 Correct! Well done! / Tahniah, jawapan tepat! (+10)';
+    createExplosion(plane.x, plane.y, '#34d399', 40);
+  } else {
+    clickedButton.classList.add('wrong');
+    allBtns[currentQuestion.correct].classList.add('correct');
+    currentScore = Math.max(0, currentScore - 5);
+    wrongCount++;
+    soundWrong();
+    feedbackBanner.className = 'feedback-banner feedback-wrong';
+    const correctLetter = ['A', 'B', 'C', 'D'][currentQuestion.correct];
+    feedbackBanner.innerHTML = `⚠️ Not quite! Try your best! / Jawapan tepat: <b>${correctLetter}</b> (-5)`;
+  }
+
+  updateHUD();
+
+  const nextBtn = document.getElementById('modal-next-btn');
+  nextBtn.classList.remove('hidden');
+  nextBtn.focus();
+
+  window.autoResumeTimer = setTimeout(() => {
+    resumeFlight();
+  }, 2400);
+}
+
+function resumeFlight() {
+  if (window.autoResumeTimer) clearTimeout(window.autoResumeTimer);
+  document.getElementById('question-modal').classList.add('hidden');
+
+  if (answeredCount >= 10) {
+    endGame();
+  } else {
+    gamePaused = false;
+    plane.invulnerableTimer = 60; // 1 saat kebal selepas resume
+    spawnNextCoin();
+  }
+}
+
+/* -------------------------------------------------------------
+ * 8. GAME OVER & RESULTS
+ * ------------------------------------------------------------- */
+function endGame() {
+  gameRunning = false;
+  gamePaused = true;
+  document.getElementById('hud').classList.add('hidden');
+  document.getElementById('question-modal').classList.add('hidden');
+
+  const resultsScreen = document.getElementById('results-screen');
+  resultsScreen.classList.remove('hidden');
+
+  document.getElementById('res-student-info').innerText = `${playerName} • ${customClassName} (${selectedClass})`;
+  document.getElementById('res-correct').innerText = correctCount;
+  document.getElementById('res-wrong').innerText = wrongCount;
+  document.getElementById('res-hits').innerText = obstacleHits;
+  document.getElementById('res-score').innerText = `${currentScore} / 100`;
+
+  const percentage = Math.round((correctCount / 10) * 100);
+  document.getElementById('res-pct').innerText = `${percentage}%`;
+
+  const trophyEl = document.getElementById('res-trophy');
+  const messageEl = document.getElementById('res-message');
+
+  if (currentScore >= 90) {
+    trophyEl.innerText = '🥇';
+    messageEl.innerHTML = `Luar Biasa, ${playerName}! Kemahiran penerbangan & pemahaman sajak anda amat cemerlang!`;
+  } else if (currentScore >= 70) {
+    trophyEl.innerText = '🥈';
+    messageEl.innerHTML = `Tahniah, ${playerName}! Pemanduan mantap dan kefahaman keluarga yang sangat baik.`;
+  } else if (currentScore >= 50) {
+    trophyEl.innerText = '🥉';
+    messageEl.innerHTML = `Bagus, ${playerName}! Teruskan latihan mengelak halangan ribut untuk markah penuh!`;
+  } else {
+    trophyEl.innerText = '⭐';
+    messageEl.innerHTML = `Teruskan berusaha, ${playerName}! Ulangkaji sajak dan elak awan petir untuk terbang lebih tinggi!`;
+  }
+}
+
+function restartGame() {
+  document.getElementById('results-screen').classList.add('hidden');
+  document.getElementById('start-screen').classList.remove('hidden');
+}
+
+/* -------------------------------------------------------------
+ * 9. PARTICLES & VISUAL EFFECTS
+ * ------------------------------------------------------------- */
+function createExplosion(x, y, color = '#facc15', count = 30) {
+  for (let i = 0; i < count; i++) {
+    const angle = Math.random() * Math.PI * 2;
+    const speed = 2 + Math.random() * 6;
+    starBurst.push({
+      x,
+      y,
+      vx: Math.cos(angle) * speed,
+      vy: Math.sin(angle) * speed,
+      size: 4 + Math.random() * 6,
+      color,
+      alpha: 1,
+      decay: 0.02 + Math.random() * 0.02
+    });
+  }
+}
+
+function createExhaustParticle(x, y) {
+  particles.push({
+    x,
+    y,
+    vx: (Math.random() - 0.5) * 1.5,
+    vy: 3.5 + Math.random() * 2,
+    radius: 4 + Math.random() * 4,
+    alpha: 0.65,
+    decay: 0.035,
+    color: Math.random() > 0.4 ? 'rgba(255, 200, 50,' : 'rgba(255, 100, 30,'
+  });
+}
+
+/* -------------------------------------------------------------
+ * 10. DRAWING FUNCTIONS (3D ARCADE STYLE)
+ * ------------------------------------------------------------- */
+function drawArcadeAirplane(ctx, p) {
+  // Invulnerability blink
+  if (p.invulnerableTimer > 0 && Math.floor(p.invulnerableTimer / 5) % 2 === 0) {
+    return; // Kelip halimunan semasa kebal
+  }
+
+  ctx.save();
+  ctx.translate(p.x, p.y);
+  ctx.rotate(p.bankAngle * 0.5);
+
+  // Drop Shadow
+  ctx.save();
+  ctx.translate(-15, p.altitude);
+  ctx.scale(1, 0.7);
+  ctx.fillStyle = 'rgba(2, 44, 34, 0.35)';
+  ctx.beginPath();
+  ctx.ellipse(0, 0, 32, 14, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+
+  // Shield Bubble if invulnerable
+  if (p.invulnerableTimer > 0) {
+    ctx.strokeStyle = 'rgba(56, 189, 248, 0.8)';
+    ctx.lineWidth = 3;
+    ctx.fillStyle = 'rgba(56, 189, 248, 0.15)';
+    ctx.beginPath();
+    ctx.arc(0, 0, 42, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+  }
+
+  // Wings
+  const wingGrad = ctx.createLinearGradient(-36, 0, 36, 0);
+  wingGrad.addColorStop(0, '#e02424');
+  wingGrad.addColorStop(0.5, '#f87171');
+  wingGrad.addColorStop(1, '#991b1b');
+
+  ctx.fillStyle = wingGrad;
+  ctx.beginPath();
+  ctx.moveTo(0, -12);
+  ctx.lineTo(38, 12);
+  ctx.lineTo(30, 22);
+  ctx.lineTo(0, 10);
+  ctx.lineTo(-30, 22);
+  ctx.lineTo(-38, 12);
+  ctx.closePath();
+  ctx.fill();
+  ctx.strokeStyle = '#7f1d1d';
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+
+  // Wingtips
+  ctx.fillStyle = '#fde047';
+  ctx.beginPath();
+  ctx.moveTo(34, 9);
+  ctx.lineTo(38, 12);
+  ctx.lineTo(30, 22);
+  ctx.lineTo(27, 18);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.beginPath();
+  ctx.moveTo(-34, 9);
+  ctx.lineTo(-38, 12);
+  ctx.lineTo(-30, 22);
+  ctx.lineTo(-27, 18);
+  ctx.closePath();
+  ctx.fill();
+
+  // Tail
+  ctx.fillStyle = '#dc2626';
+  ctx.beginPath();
+  ctx.moveTo(0, 16);
+  ctx.lineTo(16, 32);
+  ctx.lineTo(-16, 32);
+  ctx.closePath();
+  ctx.fill();
+
+  // Tail Fin
+  ctx.fillStyle = '#fca5a5';
+  ctx.beginPath();
+  ctx.moveTo(0, 10);
+  ctx.lineTo(4, 30);
+  ctx.lineTo(-4, 30);
+  ctx.closePath();
+  ctx.fill();
+
+  // Body
+  const bodyGrad = ctx.createLinearGradient(-14, 0, 14, 0);
+  bodyGrad.addColorStop(0, '#ffffff');
+  bodyGrad.addColorStop(0.3, '#f1f5f9');
+  bodyGrad.addColorStop(0.8, '#cbd5e1');
+  bodyGrad.addColorStop(1, '#64748b');
+
+  ctx.fillStyle = bodyGrad;
+  ctx.beginPath();
+  ctx.ellipse(0, 2, 12, 30, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = '#475569';
+  ctx.lineWidth = 1.2;
+  ctx.stroke();
+
+  // Cockpit
+  const glassGrad = ctx.createLinearGradient(-6, -10, 6, 8);
+  glassGrad.addColorStop(0, '#38bdf8');
+  glassGrad.addColorStop(0.5, '#0284c7');
+  glassGrad.addColorStop(1, '#082f49');
+
+  ctx.fillStyle = glassGrad;
+  ctx.beginPath();
+  ctx.ellipse(0, -6, 6, 13, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.75)';
+  ctx.beginPath();
+  ctx.ellipse(-2, -9, 2, 6, -0.3, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Propeller nose
+  ctx.fillStyle = '#f59e0b';
+  ctx.beginPath();
+  ctx.arc(0, -27, 4.5, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.45)';
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.ellipse(0, -28, 22, 5, 0, 0, Math.PI * 2);
+  ctx.stroke();
+
+  ctx.restore();
+}
+
+function drawCoin(ctx, c) {
+  if (!c.active) return;
+  ctx.save();
+  ctx.translate(c.x, c.y + Math.sin(c.bob) * 5);
+
+  const auraGrad = ctx.createRadialGradient(0, 0, 8, 0, 0, 36);
+  auraGrad.addColorStop(0, 'rgba(250, 204, 21, 0.7)');
+  auraGrad.addColorStop(0.5, 'rgba(245, 158, 11, 0.3)');
+  auraGrad.addColorStop(1, 'rgba(245, 158, 11, 0)');
+  ctx.fillStyle = auraGrad;
+  ctx.beginPath();
+  ctx.arc(0, 0, 36, 0, Math.PI * 2);
+  ctx.fill();
+
+  const scaleX = Math.cos(c.spin);
+  ctx.scale(Math.abs(scaleX) < 0.12 ? 0.12 : scaleX, 1);
+
+  ctx.fillStyle = '#b45309';
+  ctx.beginPath();
+  ctx.arc(2, 0, c.radius, 0, Math.PI * 2);
+  ctx.fill();
+
+  const coinGrad = ctx.createLinearGradient(-c.radius, -c.radius, c.radius, c.radius);
+  coinGrad.addColorStop(0, '#fef08a');
+  coinGrad.addColorStop(0.5, '#f59e0b');
+  coinGrad.addColorStop(1, '#b45309');
+
+  ctx.fillStyle = coinGrad;
+  ctx.beginPath();
+  ctx.arc(0, 0, c.radius, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = '#fffbeb';
+  ctx.lineWidth = 2.5;
+  ctx.stroke();
+
+  ctx.fillStyle = '#fef3c7';
+  ctx.font = 'bold 20px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('★', 0, 1);
+
+  ctx.restore();
+}
+
+function drawObstacle(ctx, obs) {
+  ctx.save();
+  ctx.translate(obs.x, obs.y);
+
+  if (obs.type === 'thundercloud') {
+    // Dark ominous storm cloud
+    ctx.fillStyle = obs.hasFlash ? 'rgba(254, 240, 138, 0.95)' : 'rgba(30, 41, 59, 0.92)';
+    ctx.beginPath();
+    ctx.arc(0, 0, obs.radius, 0, Math.PI * 2);
+    ctx.arc(-obs.radius * 0.55, 4, obs.radius * 0.65, 0, Math.PI * 2);
+    ctx.arc(obs.radius * 0.55, 4, obs.radius * 0.7, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Dark cloud border
+    ctx.strokeStyle = obs.hasFlash ? '#facc15' : '#475569';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // Lightning Bolt Spark
+    ctx.fillStyle = '#fde047';
+    ctx.beginPath();
+    ctx.moveTo(0, -6);
+    ctx.lineTo(-8, 8);
+    ctx.lineTo(-2, 8);
+    ctx.lineTo(-6, 20);
+    ctx.lineTo(8, 2);
+    ctx.lineTo(2, 2);
+    ctx.closePath();
+    ctx.fill();
+
+  } else if (obs.type === 'drone') {
+    // Futuristic Hazard Drone
+    obs.propellerAngle += 0.35;
+
+    // Drone Body
+    ctx.fillStyle = '#334155';
+    ctx.beginPath();
+    ctx.arc(0, 0, 15, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = '#ef4444';
+    ctx.lineWidth = 3;
+    ctx.stroke();
+
+    // Red Warning LED
+    ctx.fillStyle = '#ef4444';
+    ctx.beginPath();
+    ctx.arc(0, 0, 6, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Drone 4 Rotors
+    const rotorDist = 20;
+    const rotors = [
+      [-rotorDist, -rotorDist],
+      [rotorDist, -rotorDist],
+      [-rotorDist, rotorDist],
+      [rotorDist, rotorDist]
+    ];
+
+    rotors.forEach(([rx, ry]) => {
+      // Rotor arm
+      ctx.strokeStyle = '#64748b';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.lineTo(rx, ry);
+      ctx.stroke();
+
+      // Spinning rotor blade
+      ctx.save();
+      ctx.translate(rx, ry);
+      ctx.rotate(obs.propellerAngle);
+      ctx.fillStyle = 'rgba(248, 113, 113, 0.7)';
+      ctx.fillRect(-8, -2, 16, 4);
+      ctx.restore();
+    });
+  }
+
+  ctx.restore();
+}
+
+/* -------------------------------------------------------------
+ * 11. MAIN GAME LOOP
+ * ------------------------------------------------------------- */
+function update() {
+  if (!gamePaused && gameRunning) {
+    if (plane.invulnerableTimer > 0) {
+      plane.invulnerableTimer--;
+    }
+
+    // Keyboard & D-Pad inputs
+    let moveX = 0;
+    let moveY = 0;
+
+    if (keys.ArrowLeft || keys.a) moveX -= 1;
+    if (keys.ArrowRight || keys.d) moveX += 1;
+    if (keys.ArrowUp || keys.w) moveY -= 1;
+    if (keys.ArrowDown || keys.s) moveY += 1;
+
+    if (isPointerDragging && targetX !== null && targetY !== null) {
+      const dx = targetX - plane.x;
+      const dy = targetY - plane.y;
+      const dist = Math.hypot(dx, dy);
+      if (dist > 10) {
+        moveX = dx / dist;
+        moveY = dy / dist;
+      }
+    }
+
+    plane.vx += moveX * plane.speed * 0.22;
+    plane.vy += moveY * plane.speed * 0.22;
+
+    plane.vx *= plane.friction;
+    plane.vy *= plane.friction;
+
+    plane.x += plane.vx;
+    plane.y += plane.vy;
+
+    const pad = 35;
+    if (plane.x < pad) { plane.x = pad; plane.vx = 0; }
+    if (plane.x > width - pad) { plane.x = width - pad; plane.vx = 0; }
+    if (plane.y < 50) { plane.y = 50; plane.vy = 0; }
+    if (plane.y > height - 70) { plane.y = height - 70; plane.vy = 0; }
+
+    const targetBank = (plane.vx / plane.speed) * 0.65;
+    plane.bankAngle += (targetBank - plane.bankAngle) * 0.2;
+
+    if (Math.random() < 0.7) {
+      createExhaustParticle(plane.x - 3, plane.y + 26);
+      createExhaustParticle(plane.x + 3, plane.y + 26);
+    }
+
+    // Coin Collision
+    if (coin.active) {
+      coin.spin += 0.055;
+      coin.bob += 0.08;
+
+      const dist = Math.hypot(plane.x - coin.x, plane.y - coin.y);
+      if (dist < plane.width * 0.5 + coin.radius) {
+        coin.active = false;
+        triggerQuestion();
+      }
+    }
+
+    // Obstacles Movement & Collision
+    for (let i = 0; i < obstacles.length; i++) {
+      const obs = obstacles[i];
+      obs.y += obs.speedY;
+      if (obs.speedX) {
+        obs.x += obs.speedX;
+        if (obs.x < 40 || obs.x > width - 40) obs.speedX *= -1;
+      }
+
+      // Lightning flicker
+      if (obs.type === 'thundercloud') {
+        obs.lightningTimer--;
+        if (obs.lightningTimer <= 0) {
+          obs.hasFlash = !obs.hasFlash;
+          obs.lightningTimer = obs.hasFlash ? 4 : 45 + Math.random() * 40;
+        }
+      }
+
+      // Check collision with airplane if not invulnerable
+      if (plane.invulnerableTimer === 0) {
+        const hitDist = Math.hypot(plane.x - obs.x, plane.y - obs.y);
+        const collisionRadius = obs.type === 'thundercloud' ? obs.radius * 0.9 : obs.radius * 1.2;
+
+        if (hitDist < collisionRadius + 22) {
+          // HIT HAZARD!
+          plane.invulnerableTimer = 90; // ~1.5 saat
+          obstacleHits++;
+          screenShake = 16;
+          soundCrash();
+
+          // Markah ditolak 2 (minimum 0)
+          currentScore = Math.max(0, currentScore - 2);
+          updateHUD();
+
+          // Kehilangan perisai/hati
+          if (lives > 1) {
+            lives--;
+          } else {
+            lives = 3; // Reset shield cycle
+          }
+          updateHeartsHUD();
+
+          createExplosion(plane.x, plane.y, '#f87171', 25);
+          addFloatingText('AWAS! -2 PTS', plane.x, plane.y - 30, '#ef4444');
+
+          // Tolak pesawat sedikit ke bawah/arah berlawanan
+          plane.vy += 6;
+
+          // Hantar semula halangan ke atas
+          obs.y = -100;
+          obs.x = 50 + Math.random() * (width - 100);
+        }
+      }
+
+      // Respawn obstacle after going off-screen
+      if (obs.y - 60 > height) {
+        obs.y = -90;
+        obs.x = 50 + Math.random() * (width - 100);
+        obs.speedY = 1.8 + Math.random() * 1.6;
+      }
+    }
+  }
+
+  // Update Background Islands
+  for (let island of islands) {
+    island.y += island.speed;
+    if (island.y - island.size > height) {
+      island.y = -island.size;
+      island.x = Math.random() * width;
+    }
+  }
+
+  // Update Clouds
+  for (let cloud of clouds) {
+    cloud.y += cloud.speed;
+    if (cloud.y - cloud.radius * 2 > height) {
+      cloud.y = -cloud.radius * 2;
+      cloud.x = Math.random() * width;
+    }
+  }
+
+  // Update Exhaust
+  for (let i = particles.length - 1; i >= 0; i--) {
+    const p = particles[i];
+    p.x += p.vx;
+    p.y += p.vy;
+    p.alpha -= p.decay;
+    if (p.alpha <= 0) particles.splice(i, 1);
+  }
+
+  // Update Starburst
+  for (let i = starBurst.length - 1; i >= 0; i--) {
+    const s = starBurst[i];
+    s.x += s.vx;
+    s.y += s.vy;
+    s.alpha -= s.decay;
+    if (s.alpha <= 0) starBurst.splice(i, 1);
+  }
+
+  // Update Floating Texts
+  for (let i = floatingTexts.length - 1; i >= 0; i--) {
+    const ft = floatingTexts[i];
+    ft.y += ft.vy;
+    ft.alpha -= 0.025;
+    if (ft.alpha <= 0) floatingTexts.splice(i, 1);
+  }
+
+  // Screen shake decay
+  if (screenShake > 0) {
+    screenShake *= 0.88;
+    if (screenShake < 0.5) screenShake = 0;
+  }
+}
+
+function render() {
+  ctx.save();
+
+  // Screen shake translation
+  if (screenShake > 0) {
+    const ox = (Math.random() - 0.5) * screenShake;
+    const oy = (Math.random() - 0.5) * screenShake;
+    ctx.translate(ox, oy);
+  }
+
+  // Background
+  const skyGrad = ctx.createLinearGradient(0, 0, 0, height);
+  skyGrad.addColorStop(0, '#0284c7');
+  skyGrad.addColorStop(0.5, '#38bdf8');
+  skyGrad.addColorStop(1, '#0284c7');
+  ctx.fillStyle = skyGrad;
+  ctx.fillRect(0, 0, width, height);
+
+  // Islands
+  for (let isl of islands) {
+    ctx.fillStyle = isl.color;
+    ctx.beginPath();
+    ctx.ellipse(isl.x, isl.y, isl.size, isl.size * 0.65, 0.2, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.strokeStyle = '#fde047';
+    ctx.lineWidth = 4;
+    ctx.stroke();
+  }
+
+  // Clouds
+  for (let c of clouds) {
+    ctx.fillStyle = `rgba(255, 255, 255, ${c.opacity})`;
+    ctx.beginPath();
+    ctx.arc(c.x, c.y, c.radius, 0, Math.PI * 2);
+    ctx.arc(c.x + c.radius * 0.6, c.y - c.radius * 0.3, c.radius * 0.75, 0, Math.PI * 2);
+    ctx.arc(c.x - c.radius * 0.6, c.y - c.radius * 0.2, c.radius * 0.65, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // Exhaust
+  for (let p of particles) {
+    ctx.fillStyle = p.color + p.alpha + ')';
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // Obstacles (Thunderclouds & Drones)
+  for (let obs of obstacles) {
+    drawObstacle(ctx, obs);
+  }
+
+  // Coin
+  if (coin.active) {
+    drawCoin(ctx, coin);
+  }
+
+  // Airplane
+  drawArcadeAirplane(ctx, plane);
+
+  // Starburst
+  for (let s of starBurst) {
+    ctx.save();
+    ctx.globalAlpha = Math.max(0, s.alpha);
+    ctx.fillStyle = s.color;
+    ctx.translate(s.x, s.y);
+    ctx.beginPath();
+    ctx.arc(0, 0, s.size, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  // Floating Warning Texts
+  for (let ft of floatingTexts) {
+    ctx.save();
+    ctx.globalAlpha = Math.max(0, ft.alpha);
+    ctx.fillStyle = ft.color;
+    ctx.font = '900 16px "Segoe UI", sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(ft.text, ft.x, ft.y);
+    ctx.restore();
+  }
+
+  ctx.restore();
+}
+
+function gameLoop() {
+  update();
+  render();
+  requestAnimationFrame(gameLoop);
+}
+
+window.onload = function() {
+  resizeCanvas();
+  initBackground();
+  gameLoop();
+};
+</script>
+</body>
+</html>
